@@ -1,3 +1,5 @@
+require 'octokit'
+
 def recipes; @recipes end
 def recipe?(name); @recipes.include?(name) end
 def prefs; @prefs end
@@ -90,6 +92,22 @@ def copy_from_repo(filename, opts = {})
     end
   rescue OpenURI::HTTPError
     say_wizard "Unable to obtain #{source_filename} from the repo #{repo}"
+  end
+end
+
+def copy_from_github(path, destination, opts = {})
+  repo = opts[:github][:repo]
+  login = opts[:github][:login]
+  oauth_token = opts[:github][:oauth_token]
+  return unless repo && login && oauth_token
+  media_type = opts[:media_type] || 'application/vnd.github.VERSION.raw'
+  begin
+    @github_client ||= Octokit::Client.new(:login => login, :oauth_token => oauth_token)
+    source = @github_client.contents repo, :path => path, :accept => media_type
+    remove_file destination
+    create_file destination, source
+  rescue Octokit::Error
+    say_wizard "Unable to obtain #{path}"
   end
 end
 
