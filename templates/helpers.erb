@@ -107,7 +107,7 @@ def copy_from_github(path, destination, opts = {})
     remove_file destination if File.exist?(destination)
     create_file destination, source
   rescue Octokit::Error
-    say_wizard "Unable to obtain #{path}"
+    say_wizard "Unable to obtain #{path} from the repo #{repo}"
   end
 end
 
