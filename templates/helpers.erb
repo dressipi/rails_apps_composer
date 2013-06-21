@@ -104,7 +104,7 @@ def copy_from_github(path, destination, opts = {})
   begin
     @github_client ||= Octokit::Client.new(:login => login, :oauth_token => oauth_token)
     source = @github_client.contents repo, :path => path, :accept => media_type
-    remove_file destination
+    remove_file destination if File.exist?(destination)
     create_file destination, source
   rescue Octokit::Error
     say_wizard "Unable to obtain #{path}"
