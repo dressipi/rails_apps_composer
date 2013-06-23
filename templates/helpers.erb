@@ -103,12 +103,26 @@ def copy_from_github(path, destination, opts = {})
   media_type = opts[:media_type] || 'application/vnd.github.VERSION.raw'
   begin
     @github_client ||= Octokit::Client.new(:login => login, :oauth_token => oauth_token)
-    source = @github_client.contents repo, :path => path, :accept => media_type
-    remove_file destination if File.exist?(destination)
-    create_file destination, source
+    get_contents_from_github(@github_client, repo, path, destination, media_type)
   rescue Octokit::Error
     say_wizard "Unable to obtain #{path} from the repo #{repo}"
   end
+end
+
+def get_contents_from_github(client, repo, path, destination, media_type)
+  contents = client.contents repo, :path => path, :accept => media_type
+  if contents.is_a?(Array)
+    contents.each do |file|
+      get_contents_from_github(client, repo, file.path, destination, media_type)
+    end
+  else
+    replace_or_create_file_from_github(destination || path, contents)
+  end
+end
+
+def replace_or_create_file_from_github(destination, content)
+  remove_file destination if File.exist?(destination)
+  create_file destination, content
 end
 
 def html_to_haml(source)
