@@ -100,27 +100,27 @@ def copy_from_github(path, destination, opts = {})
   login = opts[:github][:login]
   oauth_token = opts[:github][:oauth_token]
   return unless repo && login && oauth_token
-  media_type = opts[:media_type] || 'application/vnd.github.VERSION.raw'
   begin
     @github_client ||= Octokit::Client.new(:login => login, :oauth_token => oauth_token)
-    get_contents_from_github(@github_client, repo, path, destination, media_type)
+    get_contents_from_github(@github_client, repo, path, destination, opts)
   rescue Octokit::Error
     say_wizard "Unable to obtain #{path} from the repo #{repo}"
   end
 end
 
-def get_contents_from_github(client, repo, path, destination, media_type)
+def get_contents_from_github(client, repo, path, destination, opts = {})
+  media_type = opts[:media_type] || 'application/vnd.github.VERSION.raw'
   contents = client.contents repo, :path => path, :accept => media_type
   if contents.is_a?(Array)
     contents.each do |file|
-      get_contents_from_github(client, repo, file.path, destination, media_type)
+      get_contents_from_github(client, repo, file.path, destination, opts)
     end
   else
-    replace_or_create_file_from_github(destination || path, contents)
+    replace_or_create_file_from_github(destination || path, contents, opts)
   end
 end
 
-def replace_or_create_file_from_github(destination, content)
+def replace_or_create_file_from_github(destination, content, opts = {})
   remove_file destination if File.exist?(destination)
   create_file destination, content
 end
