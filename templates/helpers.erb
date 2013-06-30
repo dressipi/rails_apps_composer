@@ -121,6 +121,9 @@ def get_contents_from_github(client, repo, path, destination, opts = {})
 end
 
 def replace_or_create_file_from_github(destination, content, opts = {})
+  if remove_source_path = opts[:remove_source_path]
+    destination = destination.gsub(remove_source_path, '')
+  end
   remove_file destination if File.exist?(destination)
   create_file destination, content
 end
