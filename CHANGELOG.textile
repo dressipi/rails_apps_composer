@@ -1,5 +1,118 @@
 h1. CHANGELOG
 
+h2. 2.4.14 November 22, 2013
+
+* support Zurb Foundation 5
+
+h2. 2.4.13 November 14, 2013
+
+* use the 'rails_layout' gem to generate navigation links
+* remove .gitignore and .gitkeep files unless git recipe is chosen (contributed by Mike Połtyn)
+* option to load defaults via HTTP instead of file (contributed by Arnaud Sellenet)
+* don't copy the user model from the rails3-mongoid-devise repo (contributed by Arnaud Sellenet)
+
+h2. 2.4.12 November 2, 2013
+
+* use the 'rails_layout' gem to set up a front-end framework
+* drop option to use LESS with Twitter Bootstrap (offer Sass version only)
+* 'learn-rails' app uses Zurb Foundation 4.0 instead of Twitter Bootstrap 2.3
+* upgrade 'simple_form' gem to '3.0.0'
+* remove 'bundle_path' preference used with 'bundle install' (https://github.com/RailsApps/rails-composer/issues/138)
+
+h2. 2.4.11 September 19, 2013
+
+* use rails_layout gem to set up layout files for Twitter Bootstrap 2.3
+
+h2. 2.4.10 September 16, 2013
+
+* revert to use Bootstrap 2.3 until SimpleForm supports Bootstrap 3
+
+h2. 2.4.9 September 15, 2013
+
+* use Bootstrap 3 when Rails 4.0 is used; for Rails 3.2 use Bootstrap 2.3
+* add preference to specify ph/mysql user/password (contributed by Vitaly Kushner)
+* add preference to skip db:seed (contributed by Vitaly Kushner)
+
+h2. 2.4.8 August 26, 2013
+
+* fix syntax error in 'gems' recipe
+
+h2. 2.4.7 August 26, 2013
+
+* fix Compass for using Foundation on Rails 4 (contributed by Mathias)
+* eliminate Devise Invitable module as an option for Rails 4 (closes #243)
+* improve prompt when asking for permission to drop existing databases
+* only generate Cucumber steps using 'email_spec' when Cucumber is selected (closes #234)
+* adjust routes when OmniAuth authentication is used with Rails 4 (https://github.com/RailsApps/rails-composer/issues/111)
+
+h2. 2.4.6 August 25, 2013
+
+* workaround for mongoid with Rails 4 (contributed by Rodrigo Russo)
+* lock gem 'database_cleaner' at 1.0.1 (https://github.com/bmabey/database_cleaner/issues/224)
+* add 'megatest' feature (contributed by Mark D. Blackwell)
+
+h2. 2.4.5 July 27, 2013
+
+* accommodate strong parameters in Rails 4 with Devise
+
+h2. 2.4.4 July 24, 2013
+
+* improve fix for CanCan 'seeds.rb' file for Rails 4.0
+* add 'google_drive' gem to 'learn-rails' example application
+* remove 'protected_attributes' gem for Rails 4.0
+* remove requirement for 'libv8' gem when using 'therubyracer' (contributed by Nicola Lorusso)
+* don't specify assets gem group if using Rails 4 (contributed by jconley88)
+* don't add attr_accessible for Devise in Rails 4 (contributed by jconley88)
+* refactored Rails 4 check into helper method (contributed by jconley88)
+* specify MIT license in the gemspec (closes issue #228)
+
+h2. 2.4.3 July 11, 2013
+
+* fix specs to replace deprecated stub! and mock
+
+h2. 2.4.2 July 11, 2013
+
+* add 'rails-bootstrap' example application to the 'apps4' recipe
+* remove creation of 'generators.rb' file (it was never used) from 'layout.erb'
+* remove 'sdoc' gem from Rails 4 generated Gemfile
+* modify 'email' recipe for Rails 4
+
+h2. 2.4.1 June 25, 2013
+
+* add 'protected_attributes' gem for Rails 4.0 (contributed by Vasily Ponomarev)
+* fix Devise 'routes.rb' file for Rails 4.0 (contributed by Vasily Ponomarev)
+* fix CanCan 'seeds.rb' file for Rails 4.0 (contributed by Vasily Ponomarev)
+* add gem paths reload command to fix 'html2haml' requirement (contributed by Vasily Ponomarev)
+* upgrade 'simple_form' gem to '3.0.0.rc' for Rails 4.0 (contributed by Vasily Ponomarev)
+
+h2. 2.4.0 June 24, 2013
+
+* preliminary menus for Rails 4.0
+* add 'apps4' recipe with 'learn-rails' example application
+* remove 'simple-test' example application
+* add the Ruby version to the Gemfile
+
+h2. 2.3.2 June 24, 2013
+
+* attempt to resolve issue #148 and #220 (failures caused by conflicting gem versions)
+
+h2. 2.3.1 June 22, 2013
+
+* add 'simple-test' example application to diagnose issue #220
+
+h2. 2.3.0 June 22, 2013
+
+* allow Rails 4.0, warn to check for GitHub issues
+* don't specify gem versions (Bundler manages updates)
+* assign gems to groups in Gemfile (contributed by R2dR)
+* add source signposts to generated templates (contributed by Mark D. Blackwell)
+
+h2. 2.2.42 June 20, 2013
+
+* fix prod_webserver handling (contributed by Vitaly Kushner)
+* update recipe for rails-prelaunch-signup app (only require capybara-webkit in test)
+* update recipe for rails-prelaunch-signup app (replace selenium with capybara-webkit)
+
 h2. 2.2.41 May 23, 2013
 
 * update recipe for rails-prelaunch-signup app (add selenium-webdriver gem)

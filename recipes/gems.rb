@@ -4,132 +4,161 @@
 ### GEMFILE ###
 
 ## Ruby on Rails
-insert_into_file('Gemfile', "ruby '#{RUBY_VERSION}'\n", :before => /^ *gem 'rails'/, :force => false) if prefer :deploy, 'heroku'
+insert_into_file('Gemfile', "ruby '#{RUBY_VERSION}'\n", :before => /^ *gem 'rails'/, :force => false)
+
+## Cleanup
+# remove the 'sdoc' gem
+gsub_file 'Gemfile', /group :doc do/, ''
+gsub_file 'Gemfile', /\s*gem 'sdoc', require: false\nend/, ''
+
+assets_group = rails_4? ? nil : :assets
 
 ## Web Server
 if (prefs[:dev_webserver] == prefs[:prod_webserver])
-  gem 'thin', '>= 1.5.0' if prefer :dev_webserver, 'thin'
-  gem 'unicorn', '>= 4.3.1' if prefer :dev_webserver, 'unicorn'
-  gem 'puma', '>= 1.6.3' if prefer :dev_webserver, 'puma'
+  add_gem 'thin' if prefer :dev_webserver, 'thin'
+  add_gem 'unicorn' if prefer :dev_webserver, 'unicorn'
+  add_gem 'puma' if prefer :dev_webserver, 'puma'
 else
-  gem 'thin', '>= 1.5.0', :group => [:development, :test] if prefer :dev_webserver, 'thin'
-  gem 'unicorn', '>= 4.3.1', :group => [:development, :test] if prefer :dev_webserver, 'unicorn'
-  gem 'puma', '>= 1.6.3', :group => [:development, :test] if prefer :dev_webserver, 'puma'
-  gem 'thin', '>= 1.5.0', :group => :production if prefer :prod_webserver, 'thin'
-  gem 'unicorn', '>= 4.3.1', :group => :production if prefer :prod_webserver, 'unicorn'
-  gem 'puma', '>= 1.6.3', :group => :production if prefer :prod_webserver, 'puma'
+  add_gem 'thin', :group => [:development, :test] if prefer :dev_webserver, 'thin'
+  add_gem 'unicorn', :group => [:development, :test] if prefer :dev_webserver, 'unicorn'
+  add_gem 'puma', :group => [:development, :test] if prefer :dev_webserver, 'puma'
+  add_gem 'thin', :group => :production if prefer :prod_webserver, 'thin'
+  add_gem 'unicorn', :group => :production if prefer :prod_webserver, 'unicorn'
+  add_gem 'puma', :group => :production if prefer :prod_webserver, 'puma'
 end
 
+## Rails 4.0 attr_accessible Compatibility
+# if prefer :apps4, false
+#   add_gem 'protected_attributes' if rails_4?
+# end
+
 ## Database Adapter
-gsub_file 'Gemfile', /gem 'sqlite3'\n/, '' unless prefer :database, 'sqlite'
-gem 'mongoid', '>= 3.1.2' if prefer :orm, 'mongoid'
+unless prefer :database, 'default'
+  gsub_file 'Gemfile', /gem 'sqlite3'\n/, '' unless prefer :database, 'sqlite'
+end
+if rails_4?
+  add_gem 'mongoid', '~> 4', github: 'mongoid/mongoid' if prefer :orm, 'mongoid'
+else
+  add_gem 'mongoid' if prefer :orm, 'mongoid'
+end
 gsub_file 'Gemfile', /gem 'pg'.*/, ''
-gem 'pg', '>= 0.15.0' if prefer :database, 'postgresql'
+add_gem 'pg' if prefer :database, 'postgresql'
 gsub_file 'Gemfile', /gem 'mysql2'.*/, ''
-gem 'mysql2', '>= 0.3.11' if prefer :database, 'mysql'
+add_gem 'mysql2' if prefer :database, 'mysql'
 
 ## Template Engine
 if prefer :templates, 'haml'
-  gem 'haml-rails', '>= 0.4'
-  gem 'html2haml', '>= 1.0.1', :group => :development
+  add_gem 'haml-rails'
+  add_gem 'html2haml', :group => :development
 end
 if prefer :templates, 'slim'
-  gem 'slim', '>= 2.0.0.pre.6'
-  gem 'haml2slim', '>= 0.4.6', :group => :development
+  add_gem 'slim'
+  add_gem 'haml2slim', :group => :development
   # Haml is needed for conversion of HTML to Slim
-  gem 'haml-rails', '>= 0.4', :group => :development
-  gem 'html2haml', '>= 1.0.1', :group => :development
+  add_gem 'haml-rails', :group => :development
+  add_gem 'html2haml', :group => :development
 end
 
 ## Testing Framework
 if prefer :unit_test, 'rspec'
-  gem 'rspec-rails', '>= 2.12.2', :group => [:development, :test]
-  gem 'capybara', '>= 2.0.3', :group => :test if prefer :integration, 'rspec-capybara'
-  gem 'database_cleaner', '>= 1.0.0.RC1', :group => :test
+  add_gem 'rspec-rails', :group => [:development, :test]
+  add_gem 'capybara', :group => :test if prefer :integration, 'rspec-capybara'
+  add_gem 'database_cleaner', '1.0.1', :group => :test
   if prefer :orm, 'mongoid'
-    gem 'mongoid-rspec', '>= 1.7.0', :group => :test
+    if rails_4?
+      add_gem 'mongoid-rspec', '>= 1.6.0', github: 'evansagge/mongoid-rspec', :group => :test
+    else
+      add_gem 'mongoid-rspec', :group => :test
+    end
   end
-  gem 'email_spec', '>= 1.4.0', :group => :test
+  add_gem 'email_spec', :group => :test
 end
 if prefer :unit_test, 'minitest'
-  gem 'minitest-spec-rails', '>= 4.3.8', :group => :test
-  gem 'minitest-wscolor', '>= 0.0.3', :group => :test
-  gem 'capybara', '>= 2.0.3', :group => :test if prefer :integration, 'minitest-capybara'
+  add_gem 'minitest-spec-rails', :group => :test
+  add_gem 'minitest-wscolor', :group => :test
+  add_gem 'capybara', :group => :test if prefer :integration, 'minitest-capybara'
 end
 if prefer :integration, 'cucumber'
-  gem 'cucumber-rails', '>= 1.3.1', :group => :test, :require => false
-  gem 'database_cleaner', '>= 1.0.0.RC1', :group => :test unless prefer :unit_test, 'rspec'
-  gem 'launchy', '>= 2.2.0', :group => :test
-  gem 'capybara', '>= 2.0.3', :group => :test
+  add_gem 'cucumber-rails', :group => :test, :require => false
+  add_gem 'database_cleaner', '1.0.1', :group => :test unless prefer :unit_test, 'rspec'
+  add_gem 'launchy', :group => :test
+  add_gem 'capybara', :group => :test
 end
-gem 'turnip', '>= 1.1.0', :group => :test if prefer :integration, 'turnip'
+add_gem 'turnip', '>= 1.1.0', :group => :test if prefer :integration, 'turnip'
 if prefer :continuous_testing, 'guard'
-  gem 'guard-bundler', '>= 1.0.0', :group => :development
-  gem 'guard-cucumber', '>= 1.4.0', :group => :development if prefer :integration, 'cucumber'
-  gem 'guard-rails', '>= 0.4.0', :group => :development
-  gem 'guard-rspec', '>= 2.5.2', :group => :development if prefer :unit_test, 'rspec'
-  gem 'rb-inotify', '>= 0.9.0', :group => :development, :require => false
-  gem 'rb-fsevent', '>= 0.9.3', :group => :development, :require => false
-  gem 'rb-fchange', '>= 0.0.6', :group => :development, :require => false
+  add_gem 'guard-bundler', :group => :development
+  add_gem 'guard-cucumber', :group => :development if prefer :integration, 'cucumber'
+  add_gem 'guard-rails', :group => :development
+  add_gem 'guard-rspec', :group => :development if prefer :unit_test, 'rspec'
+  add_gem 'rb-inotify', :group => :development, :require => false
+  add_gem 'rb-fsevent', :group => :development, :require => false
+  add_gem 'rb-fchange', :group => :development, :require => false
 end
-gem 'factory_girl_rails', '>= 4.2.0', :group => [:development, :test] if prefer :fixtures, 'factory_girl'
-gem 'fabrication', '>= 2.3.0', :group => [:development, :test] if prefer :fixtures, 'fabrication'
-gem 'machinist', '>= 2.0', :group => :test if prefer :fixtures, 'machinist'
+add_gem 'factory_girl_rails', :group => [:development, :test] if prefer :fixtures, 'factory_girl'
+add_gem 'fabrication', :group => [:development, :test] if prefer :fixtures, 'fabrication'
+add_gem 'machinist', :group => :test if prefer :fixtures, 'machinist'
 
 ## Front-end Framework
-gem 'bootstrap-sass', '>= 2.3.0.0' if prefer :bootstrap, 'sass'
-gem 'compass-rails', '>= 1.0.3', :group => :assets if prefer :frontend, 'foundation'
-gem 'zurb-foundation', '>= 4.0.9', :group => :assets if prefer :frontend, 'foundation'
-if prefer :bootstrap, 'less'
-  gem 'less-rails', '>= 2.2.6', :group => :assets
-  gem 'twitter-bootstrap-rails', '>= 2.2.4', :group => :assets
-  # install gem 'therubyracer' to use Less
-  gem 'libv8', '>= 3.11.8'
-  gem 'therubyracer', '>= 0.11.3', :group => :assets, :platform => :ruby, :require => 'v8'
+add_gem 'rails_layout', :group => :development
+case prefs[:frontend]
+  when 'bootstrap2'
+    add_gem 'bootstrap-sass', '~> 2.3.2.2'
+  when 'bootstrap3'
+    add_gem 'bootstrap-sass', '>= 3.0.0.0'
+  when 'foundation4'
+    if rails_4?
+      add_gem 'zurb-foundation', '~> 4.3.2'
+      add_gem 'compass-rails', '~> 2.0.alpha.0'
+    else
+      add_gem 'zurb-foundation', '~> 4.3.2', :group => assets_group
+      add_gem 'compass-rails', '~> 1.0.3', :group => assets_group
+    end
+  when 'foundation5'
+    add_gem 'foundation-rails'
 end
 
 ## Email
-gem 'sendgrid', '>= 1.0.1' if prefer :email, 'sendgrid'
+add_gem 'sendgrid' if prefer :email, 'sendgrid'
 
 ## Authentication (Devise)
-gem 'devise', '>= 2.2.3' if prefer :authentication, 'devise'
-gem 'devise_invitable', '>= 1.1.5' if prefer :devise_modules, 'invitable'
+add_gem 'devise' if prefer :authentication, 'devise'
+add_gem 'devise_invitable' if prefer :devise_modules, 'invitable'
 
 ## Authentication (OmniAuth)
-gem 'omniauth', '>= 1.1.3' if prefer :authentication, 'omniauth'
-gem 'omniauth-twitter' if prefer :omniauth_provider, 'twitter'
-gem 'omniauth-facebook' if prefer :omniauth_provider, 'facebook'
-gem 'omniauth-github' if prefer :omniauth_provider, 'github'
-gem 'omniauth-linkedin' if prefer :omniauth_provider, 'linkedin'
-gem 'omniauth-google-oauth2' if prefer :omniauth_provider, 'google_oauth2'
-gem 'omniauth-tumblr' if prefer :omniauth_provider, 'tumblr'
+add_gem 'omniauth' if prefer :authentication, 'omniauth'
+add_gem 'omniauth-twitter' if prefer :omniauth_provider, 'twitter'
+add_gem 'omniauth-facebook' if prefer :omniauth_provider, 'facebook'
+add_gem 'omniauth-github' if prefer :omniauth_provider, 'github'
+add_gem 'omniauth-linkedin' if prefer :omniauth_provider, 'linkedin'
+add_gem 'omniauth-google-oauth2' if prefer :omniauth_provider, 'google_oauth2'
+add_gem 'omniauth-tumblr' if prefer :omniauth_provider, 'tumblr'
 
 ## Authorization
 if prefer :authorization, 'cancan'
-  gem 'cancan', '>= 1.6.9'
-  gem 'rolify', '>= 3.2.0'
+  add_gem 'cancan'
+  add_gem 'rolify'
 end
 
 ## Form Builder
-gem 'simple_form', '>= 2.1.0' if prefer :form_builder, 'simple_form'
+add_gem 'simple_form' if prefer :form_builder, 'simple_form'
 
 ## Membership App
 if prefer :railsapps, 'rails-stripe-membership-saas'
-  gem 'stripe', '>= 1.7.11'
-  gem 'stripe_event', '>= 0.4.0'
+  add_gem 'stripe'
+  add_gem 'stripe_event'
 end
 if prefer :railsapps, 'rails-recurly-subscription-saas'
-  gem 'recurly', '>= 2.1.8'
-  gem 'nokogiri', '>= 1.5.5'
-  gem 'countries', '>= 0.9.2'
-  gem 'httpi', '>= 1.1.1'
-  gem 'httpclient', '>= 2.3.3'
+  add_gem 'recurly'
+  add_gem 'nokogiri'
+  add_gem 'countries'
+  add_gem 'httpi'
+  add_gem 'httpclient'
 end
 
 ## Signup App
 if prefer :railsapps, 'rails-prelaunch-signup'
-  gem 'gibbon', '>= 0.4.2'
-  gem 'capybara-webkit', '~> 1.0.0', :group => :test
+  add_gem 'gibbon'
+  add_gem 'capybara-webkit', :group => :test
 end
 
 ## Gems from a defaults file or added interactively
@@ -143,71 +172,78 @@ git :commit => '-qm "rails_apps_composer: Gemfile"' if prefer :git, true
 
 ### CREATE DATABASE ###
 after_bundler do
-  copy_from_repo 'config/database-postgresql.yml', :prefs => 'postgresql'
-  copy_from_repo 'config/database-mysql.yml', :prefs => 'mysql'
-  generate 'mongoid:config' if prefer :orm, 'mongoid'
-  remove_file 'config/database.yml' if prefer :orm, 'mongoid'
-  if prefer :database, 'postgresql'
-    begin
-      pg_username = ask_wizard("Username for PostgreSQL? (leave blank to use the app name)")
-      if pg_username.blank?
-        say_wizard "Creating a user named '#{app_name}' for PostgreSQL"
-        run "createuser #{app_name}" if prefer :database, 'postgresql'
+  unless prefer :database, 'default'
+    copy_from_repo 'config/database-postgresql.yml', :prefs => 'postgresql'
+    copy_from_repo 'config/database-mysql.yml', :prefs => 'mysql'
+    generate 'mongoid:config' if prefer :orm, 'mongoid'
+    remove_file 'config/database.yml' if prefer :orm, 'mongoid'
+    if prefer :database, 'postgresql'
+      begin
+        pg_username = prefs[:pg_username] || ask_wizard("Username for PostgreSQL?(leave blank to use the app name)")
+        if pg_username.blank?
+          say_wizard "Creating a user named '#{app_name}' for PostgreSQL"
+          run "createuser #{app_name}" if prefer :database, 'postgresql'
+          gsub_file "config/database.yml", /username: .*/, "username: #{app_name}"
+        else
+          gsub_file "config/database.yml", /username: .*/, "username: #{pg_username}"
+          pg_password = prefs[:pg_password] || ask_wizard("Password for PostgreSQL user #{pg_username}?")
+          gsub_file "config/database.yml", /password:/, "password: #{pg_password}"
+          say_wizard "set config/database.yml for username/password #{pg_username}/#{pg_password}"
+        end
+      rescue StandardError => e
+        raise "unable to create a user for PostgreSQL, reason: #{e}"
+      end
+      gsub_file "config/database.yml", /database: myapp_development/, "database: #{app_name}_development"
+      gsub_file "config/database.yml", /database: myapp_test/,        "database: #{app_name}_test"
+      gsub_file "config/database.yml", /database: myapp_production/,  "database: #{app_name}_production"
+    end
+    if prefer :database, 'mysql'
+      mysql_username = prefs[:mysql_username] || ask_wizard("Username for MySQL? (leave blank to use the app name)")
+      if mysql_username.blank?
         gsub_file "config/database.yml", /username: .*/, "username: #{app_name}"
       else
-        gsub_file "config/database.yml", /username: .*/, "username: #{pg_username}"
-        pg_password = ask_wizard("Password for PostgreSQL user #{pg_username}?")
-        gsub_file "config/database.yml", /password:/, "password: #{pg_password}"
-        say_wizard "set config/database.yml for username/password #{pg_username}/#{pg_password}"
+        gsub_file "config/database.yml", /username: .*/, "username: #{mysql_username}"
+        mysql_password = prefs[:mysql_password] || ask_wizard("Password for MySQL user #{mysql_username}?")
+        gsub_file "config/database.yml", /password:/, "password: #{mysql_password}"
+        say_wizard "set config/database.yml for username/password #{mysql_username}/#{mysql_password}"
       end
-    rescue StandardError => e
-      raise "unable to create a user for PostgreSQL, reason: #{e}"
+      gsub_file "config/database.yml", /database: myapp_development/, "database: #{app_name}_development"
+      gsub_file "config/database.yml", /database: myapp_test/,        "database: #{app_name}_test"
+      gsub_file "config/database.yml", /database: myapp_production/,  "database: #{app_name}_production"
     end
-    gsub_file "config/database.yml", /database: myapp_development/, "database: #{app_name}_development"
-    gsub_file "config/database.yml", /database: myapp_test/,        "database: #{app_name}_test"
-    gsub_file "config/database.yml", /database: myapp_production/,  "database: #{app_name}_production"
-  end
-  if prefer :database, 'mysql'
-    mysql_username = ask_wizard("Username for MySQL? (leave blank to use the app name)")
-    if mysql_username.blank?
-      gsub_file "config/database.yml", /username: .*/, "username: #{app_name}"
-    else
-      gsub_file "config/database.yml", /username: .*/, "username: #{mysql_username}"
-      mysql_password = ask_wizard("Password for MySQL user #{mysql_username}?")
-      gsub_file "config/database.yml", /password:/, "password: #{mysql_password}"
-      say_wizard "set config/database.yml for username/password #{mysql_username}/#{mysql_password}"
+    unless prefer :database, 'sqlite'
+      if (prefs.has_key? :drop_database) ? prefs[:drop_database] :
+          (yes_wizard? "Okay to drop all existing databases named #{app_name}? 'No' will abort immediately!")
+        run 'bundle exec rake db:drop'
+      else
+        raise "aborted at user's request"
+      end
     end
-    gsub_file "config/database.yml", /database: myapp_development/, "database: #{app_name}_development"
-    gsub_file "config/database.yml", /database: myapp_test/,        "database: #{app_name}_test"
-    gsub_file "config/database.yml", /database: myapp_production/,  "database: #{app_name}_production"
+    run 'bundle exec rake db:create:all' unless prefer :orm, 'mongoid'
+    run 'bundle exec rake db:create' if prefer :orm, 'mongoid'
+    ## Git
+    git :add => '-A' if prefer :git, true
+    git :commit => '-qm "rails_apps_composer: create database"' if prefer :git, true
   end
-  unless prefer :database, 'sqlite'
-    affirm = yes_wizard? "Drop any existing databases named #{app_name}?"
-    if affirm
-      run 'bundle exec rake db:drop'
-    else
-      raise "aborted at user's request"
-    end
-  end
-  run 'bundle exec rake db:create:all' unless prefer :orm, 'mongoid'
-  run 'bundle exec rake db:create' if prefer :orm, 'mongoid'
-  ## Git
-  git :add => '-A' if prefer :git, true
-  git :commit => '-qm "rails_apps_composer: create database"' if prefer :git, true
 end # after_bundler
 
 ### GENERATORS ###
 after_bundler do
-  ## Front-end Framework
-  generate 'foundation:install' if prefer :frontend, 'foundation'
   ## Form Builder
   if prefer :form_builder, 'simple_form'
-    if prefer :frontend, 'bootstrap'
-      say_wizard "recipe installing simple_form for use with Twitter Bootstrap"
-      generate 'simple_form:install --bootstrap'
-    else
-      say_wizard "recipe installing simple_form"
-      generate 'simple_form:install'
+    case prefs[:frontend]
+      when 'bootstrap2'
+        say_wizard "recipe installing simple_form for use with Twitter Bootstrap"
+        generate 'simple_form:install --bootstrap'
+      when 'bootstrap3'
+        say_wizard "recipe installing simple_form for use with Twitter Bootstrap"
+        generate 'simple_form:install --bootstrap'
+      when 'foundation4'
+        say_wizard "recipe installing simple_form for use with Zurb Foundation"
+        generate 'simple_form:install --foundation'
+      else
+        say_wizard "recipe installing simple_form"
+        generate 'simple_form:install'
     end
   end
   ## Figaro Gem
@@ -223,6 +259,7 @@ after_bundler do
 # For example, setting:
 # GMAIL_USERNAME: Your_Gmail_Username
 # makes 'Your_Gmail_Username' available as ENV["GMAIL_USERNAME"]
+
 FILE
     end
   end
