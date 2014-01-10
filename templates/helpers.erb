@@ -102,10 +102,10 @@ end
 def copy_from_github(path, destination, opts = {})
   repo = opts[:github][:repo]
   login = opts[:github][:login]
-  oauth_token = opts[:github][:oauth_token]
-  return unless repo && login && oauth_token
+  access_token = opts[:github][:access_token]
+  return unless repo && login && access_token
   begin
-    @github_client ||= Octokit::Client.new(:login => login, :oauth_token => oauth_token)
+    @github_client ||= Octokit::Client.new(:login => login, :access_token => access_token)
     get_contents_from_github(@github_client, repo, path, destination, opts)
   rescue Octokit::Error
     say_wizard "Unable to obtain #{path} from the repo #{repo}"
@@ -113,7 +113,7 @@ def copy_from_github(path, destination, opts = {})
 end
 
 def get_contents_from_github(client, repo, path, destination, opts = {})
-  media_type = opts[:media_type] || 'application/vnd.github.VERSION.raw'
+  media_type = opts[:media_type] || 'application/vnd.github.v3.raw'
   contents = client.contents repo, :path => path, :accept => media_type
   if contents.is_a?(Array)
     contents.each do |file|
